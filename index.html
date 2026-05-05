@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Mini-Grid Sizing Tool | Solpotentia Energy Ltd</title>
+<meta name="description" content="Community-level solar mini-grid sizing tool for Nigeria. Bulk household and SME load profiling for DARES/REA deployments. By Solpotentia Energy Ltd.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:  #1A5EA8; --blue2: #0A2540; --teal: #2AA898;
+  --green: #1A6B3C; --sun:   #F5A623; --yellow:#F5C200;
+  --warn:  #E63946; --bg:    #F0F4F8; --white: #FFFFFF;
+  --border:#DDE3EA; --text:  #1A2332; --muted: #6B7A8D;
+  --lgrey: #F4F6FA; --shadow:0 2px 16px rgba(10,37,64,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.header{background:linear-gradient(135deg,var(--blue2),var(--blue));color:white;padding:0;box-shadow:0 2px 20px rgba(0,0,0,0.3);}
+.header-inner{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.header-icon{width:42px;height:42px;background:var(--sun);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.header-text h1{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;line-height:1.2;}
+.header-text p{font-size:0.72rem;opacity:0.7;margin-top:2px;}
+.header-badge{background:rgba(245,194,0,0.2);border:1px solid rgba(245,194,0,0.5);color:var(--yellow);font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:auto;white-space:nowrap;}
+
+.suite-banner{background:var(--blue);color:white;padding:10px 20px;text-align:center;}
+.suite-banner strong{font-size:13px;letter-spacing:1px;font-family:'Syne',sans-serif;}
+.suite-banner span{font-size:11px;color:var(--yellow);display:block;margin-top:2px;}
+
+.main{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+.info-box{border-radius:0 8px 8px 0;padding:12px 16px;margin:0 0 12px;font-size:13px;}
+.info-box.teal{background:var(--lgrey);border-left:4px solid var(--teal);}
+.info-box.sun{background:var(--lgrey);border-left:4px solid var(--sun);}
+.info-title{color:var(--blue);font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:'Syne',sans-serif;}
+.info-list{margin:0 0 0 16px;padding:0;color:var(--muted);line-height:1.9;font-size:12px;}
+.info-list li strong{color:var(--text);}
+
+/* EXPANDABLE METHODOLOGY */
+.method-toggle{background:var(--lgrey);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.method-toggle summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:13px;color:var(--blue);list-style:none;display:flex;align-items:center;gap:8px;}
+.method-toggle summary::-webkit-details-marker{display:none;}
+.method-toggle summary::before{content:'▶';font-size:10px;transition:transform 0.2s;}
+.method-toggle[open] summary::before{transform:rotate(90deg);}
+.method-body{padding:0 16px 14px;border-top:1px solid var(--border);}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:12px;}
+.formula-item{background:#1A2332;color:#A8D5B5;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;line-height:1.7;}
+.formula-item .fc{color:#F5A623;font-weight:bold;}
+.formula-item .fm{color:#58A6FF;}
+
+.card{background:var(--white);border-radius:14px;padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* PROJECT IDENTITY */
+.identity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:4px;}
+.id-field label{display:block;font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.id-field input,.id-field select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;background:var(--lgrey);color:var(--text);outline:none;transition:border-color 0.2s;}
+.id-field input:focus,.id-field select:focus{border-color:var(--teal);background:white;}
+
+/* PARAMS */
+.params-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:16px;}
+.param-card{background:var(--lgrey);border:1px solid var(--border);border-radius:10px;padding:13px;}
+.param-card label{display:block;font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.param-card select,.param-card input{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.87rem;background:white;color:var(--text);outline:none;}
+.param-card select:focus,.param-card input:focus{border-color:var(--teal);}
+.param-note{font-size:0.71rem;color:var(--muted);margin-top:4px;}
+
+.psh-ref{background:rgba(26,94,168,0.06);border:1px solid rgba(26,94,168,0.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.8;}
+.psh-ref strong{color:var(--blue);}
+.psh-source{font-size:10px;color:var(--muted);font-style:italic;margin-top:4px;}
+
+/* LOAD TABLE */
+.ht-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.ht-table th{background:var(--blue2);color:white;padding:9px 10px;text-align:left;font-size:0.73rem;text-transform:uppercase;letter-spacing:0.3px;font-weight:600;}
+.ht-table th:first-child{border-radius:8px 0 0 8px;}
+.ht-table th:last-child{border-radius:0 8px 8px 0;}
+.ht-table td{padding:7px 7px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ht-table tr:hover td{background:var(--lgrey);}
+.ht-table input[type=number],.ht-table input[type=text]{width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:0.82rem;font-family:'DM Sans',sans-serif;background:white;outline:none;}
+.ht-table input:focus{border-color:var(--teal);}
+.ht-table .wh-cell{font-weight:700;color:var(--green);text-align:right;white-space:nowrap;}
+.ht-table .pw-cell{font-weight:700;color:var(--sun);text-align:right;white-space:nowrap;}
+.ht-table .inactive{color:var(--muted);font-style:italic;}
+.cat-hdr td{background:#E8F0FE;font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;color:var(--blue);padding:8px 10px;border-bottom:none;border-top:2px solid var(--blue);}
+
+.totals-bar{background:linear-gradient(135deg,var(--blue2),var(--blue));color:white;border-radius:10px;padding:14px 20px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.total-item{text-align:center;}
+.total-val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--yellow);line-height:1;}
+.total-lbl{font-size:0.7rem;opacity:0.75;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+
+.calc-btn{width:100%;background:linear-gradient(135deg,var(--teal),#1A8A7A);color:white;font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:2px;padding:16px;border:none;border-radius:12px;cursor:pointer;transition:opacity 0.2s,transform 0.15s;margin-bottom:28px;}
+.calc-btn:hover{opacity:0.92;transform:translateY(-2px);}
+
+.err-msg{background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.3);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--warn);margin-bottom:16px;display:none;}
+
+#results{display:none;animation:fadeUp 0.4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* PROJECT SUMMARY HEADER in results */
+.proj-summary{background:var(--blue2);color:white;border-radius:12px;padding:18px 22px;margin-bottom:20px;}
+.proj-summary h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:10px;color:var(--yellow);}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.proj-item .pl{font-size:0.7rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.5px;}
+.proj-item .pv{font-size:0.88rem;font-weight:600;color:white;margin-top:2px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;margin-bottom:20px;}
+.kpi-card{border-radius:13px;padding:17px 18px;position:relative;overflow:hidden;}
+.kpi-card.blue{background:linear-gradient(135deg,#0A2540,#1A4A7A);color:white;}
+.kpi-card.green{background:linear-gradient(135deg,#1A6B3C,#2E9D5B);color:white;}
+.kpi-card.orange{background:linear-gradient(135deg,#F5A623,#F7C05E);color:#3D2600;}
+.kpi-card.teal{background:linear-gradient(135deg,#0D7377,#14A3A8);color:white;}
+.kpi-card.purple{background:linear-gradient(135deg,#5C3D99,#8B5CF6);color:white;}
+.kpi-card.red{background:linear-gradient(135deg,#C0392B,#E74C3C);color:white;}
+.kpi-label{font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;opacity:0.75;margin-bottom:5px;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;line-height:1;margin-bottom:3px;}
+.kpi-sub{font-size:0.72rem;opacity:0.75;}
+.kpi-icon{position:absolute;right:13px;top:11px;font-size:22px;opacity:0.2;}
+
+.wiring-box{background:var(--lgrey);border:1.5px solid #B8CFEA;border-radius:10px;padding:14px 18px;margin-bottom:20px;}
+.wiring-title{font-family:'Syne',sans-serif;font-weight:700;color:var(--blue);margin-bottom:10px;font-size:0.88rem;}
+.wiring-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.wiring-item{background:white;border-radius:8px;padding:10px 14px;border:1px solid var(--border);}
+.wiring-item .wl{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.wiring-item .wv{font-weight:700;color:var(--blue);font-size:0.95rem;}
+
+/* LOAD BREAKDOWN BY CATEGORY */
+.breakdown-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px;}
+.breakdown-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:var(--shadow);}
+.breakdown-card .bc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;color:var(--blue2);margin-bottom:6px;}
+.breakdown-card .bc-wh{font-size:1.1rem;font-weight:700;color:var(--green);}
+.breakdown-card .bc-pct{font-size:0.78rem;color:var(--muted);}
+.breakdown-card .bc-conn{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+
+.report-table{width:100%;border-collapse:collapse;font-size:0.81rem;margin-bottom:20px;}
+.report-table th{background:var(--blue);color:white;padding:9px 12px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.3px;}
+.report-table td{padding:8px 12px;border-bottom:1px solid var(--border);}
+.report-table tr:nth-child(even) td{background:var(--lgrey);}
+.report-table .val{font-weight:700;color:var(--green);text-align:right;}
+.report-table .cat-row td{background:#E8F0FE;font-weight:700;font-size:0.78rem;color:var(--blue);padding:6px 12px;}
+.report-table tfoot td{background:var(--blue2);color:white;font-weight:700;padding:10px 12px;}
+
+.action-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.btn{padding:10px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.84rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--green);color:white;}
+.btn-primary:hover{background:#145530;}
+.btn-outline{background:white;color:var(--blue);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal);}
+
+.disclaimer{background:rgba(245,166,35,0.07);border:1px solid rgba(245,166,35,0.25);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:30px;font-style:italic;}
+
+.footer-bar{background:var(--blue);color:white;padding:12px 20px;text-align:center;font-size:11px;}
+
+@media(max-width:600px){
+  .totals-bar{flex-direction:column;align-items:center;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .header-badge{display:none;}
+  .ht-table{font-size:0.75rem;}
+}
+@media print{
+  .header,.suite-banner,.calc-btn,.action-row,
+  .who-box,.info-box,.method-toggle,
+  button,.err-msg{display:none!important;}
+  body{background:white;}
+  .main{padding:0;}
+  #results{display:block!important;}
+  .card{box-shadow:none;border:1px solid #ccc;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-icon">🏘</div>
+    <div class="header-text">
+      <h1>COMMUNITY MINI-GRID SIZING TOOL</h1>
+      <p>Preliminary community load profiling &amp; system sizing for rural electrification planning — DARES / REA</p>
+    </div>
+    <span class="header-badge">v1.1 Beta</span>
+  </div>
+</div>
+
+<div class="suite-banner">
+  <strong>SOLPOTENTIA ENERGY LTD — Solar Planning &amp; Advisory Suite for Nigeria</strong>
+  <span>Anambra State, Nigeria &nbsp;|&nbsp; solpotentia@gmail.com &nbsp;|&nbsp; v1.1 Beta</span>
+</div>
+
+<div class="main">
+
+  <!-- WHO THIS IS FOR -->
+  <div class="info-box teal">
+    <div class="info-title">👥 Who This Tool Is For</div>
+    <ul class="info-list">
+      <li>REA field agents conducting community energy assessments</li>
+      <li>DARES-approved mini-grid developers and RESCO operators</li>
+      <li>Solar technicians profiling household and productive-use loads</li>
+      <li>Rural electrification planners and training institutions</li>
+    </ul>
+  </div>
+
+  <!-- EXPANDABLE METHODOLOGY -->
+  <details class="method-toggle">
+    <summary>📐 Methodology &amp; Engineering Assumptions (click to expand)</summary>
+    <div class="method-body">
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7;">
+        This tool is designed to support <strong>preliminary off-grid rural electrification planning</strong>.
+        It applies standard solar PV system design principles commonly used in off-grid and mini-grid project development.
+        Peak Sun Hour data is sourced from <strong>NASA POWER (power.larc.nasa.gov)</strong> and
+        <strong>NIMET (Nigerian Meteorological Agency)</strong> long-term irradiance records.
+        All outputs should be treated as planning estimates and validated by a certified solar engineer before procurement.
+      </p>
+      <div class="formula-grid">
+        <div class="formula-item">
+          <div class="fc">Solar Array (Wp)</div>
+          <div class="fm">= (Daily Load Wh ÷ System Eff.) × Safety ÷ PSH</div>
+          <div style="color:#7D8590;font-size:11px;">Eff=80%, Safety=1.15, PSH=location-based</div>
+        </div>
+        <div class="formula-item">
+          <div class="fc">Battery Bank (Ah)</div>
+          <div class="fm">= (Daily Load × Autonomy Days) ÷ (DoD × Sys Voltage)</div>
+          <div style="color:#7D8590;font-size:11px;">DoD: 50% flooded | 60% AGM | 80% LiFePO4</div>
+        </div>
+        <div class="formula-item">
+          <div class="fc">Inverter (kW)</div>
+          <div class="fm">= Peak Simultaneous Load × 1.25 (surge factor)</div>
+          <div style="color:#7D8590;font-size:11px;">25% headroom for startup surge currents</div>
+        </div>
+        <div class="formula-item">
+          <div class="fc">Charge Controller (A)</div>
+          <div class="fm">= (Array Wp ÷ (Sys V × 1.25)) × 1.25</div>
+          <div style="color:#7D8590;font-size:11px;">MPPT sizing with 25% safety margin</div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- STEP 1: PROJECT IDENTITY -->
+  <div class="card">
+    <div class="card-title">📋 Step 1 — Project Information</div>
+    <div class="identity-grid">
+      <div class="id-field">
+        <label>Project Name</label>
+        <input type="text" id="projName" placeholder="e.g. Oguta Mini-Grid Phase 1">
+      </div>
+      <div class="id-field">
+        <label>Community Name</label>
+        <input type="text" id="commName" placeholder="e.g. Oguta Town">
+      </div>
+      <div class="id-field">
+        <label>LGA</label>
+        <input type="text" id="lga" placeholder="e.g. Oguta LGA">
+      </div>
+      <div class="id-field">
+        <label>State</label>
+        <input type="text" id="state" placeholder="e.g. Imo State">
+      </div>
+      <div class="id-field">
+        <label>Assessor Name</label>
+        <input type="text" id="assessor" placeholder="Field officer / engineer name">
+      </div>
+      <div class="id-field">
+        <label>Developer / Organisation</label>
+        <input type="text" id="developer" placeholder="e.g. Solpotentia Energy Ltd">
+      </div>
+      <div class="id-field">
+        <label>Assessment Date</label>
+        <input type="date" id="assessDate">
+      </div>
+      <div class="id-field">
+        <label>Report Reference</label>
+        <input type="text" id="reportRef" placeholder="e.g. SPE-2026-001">
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: SYSTEM PARAMETERS -->
+  <div class="card">
+    <div class="card-title">⚙ Step 2 — System Parameters</div>
+    <div class="params-grid">
+      <div class="param-card">
+        <label>Location / Peak Sun Hours</label>
+        <select id="psh">
+          <option value="4.0">Port Harcourt — 4.0 hrs</option>
+          <option value="4.2">Owerri — 4.2 hrs</option>
+          <option value="4.5" selected>Lagos / Southeast avg — 4.5 hrs</option>
+          <option value="4.6">Enugu — 4.6 hrs</option>
+          <option value="5.0">Abuja — 5.0 hrs</option>
+          <option value="5.5">Kaduna — 5.5 hrs</option>
+          <option value="6.0">Kano — 6.0 hrs</option>
+          <option value="6.3">Sokoto — 6.3 hrs</option>
+        </select>
+        <div class="param-note">Source: NASA POWER / NIMET irradiance data</div>
+      </div>
+      <div class="param-card">
+        <label>Battery Chemistry</label>
+        <select id="battType">
+          <option value="0.5">Flooded Lead-Acid (50% DoD)</option>
+          <option value="0.6">Sealed AGM (60% DoD)</option>
+          <option value="0.8" selected>Lithium LiFePO4 (80% DoD)</option>
+        </select>
+      </div>
+      <div class="param-card">
+        <label>System DC Voltage</label>
+        <select id="sysVolt">
+          <option value="12">12V</option>
+          <option value="24">24V</option>
+          <option value="48" selected>48V (recommended for community)</option>
+        </select>
+      </div>
+      <div class="param-card">
+        <label>Days of Autonomy</label>
+        <select id="autonomy">
+          <option value="1" selected>1 day</option>
+          <option value="2">2 days</option>
+          <option value="3">3 days</option>
+        </select>
+      </div>
+      <div class="param-card">
+        <label>Load Growth Allowance</label>
+        <select id="growthFactor">
+          <option value="1.0">0% — No growth factor</option>
+          <option value="1.1" selected>10% — Moderate growth</option>
+          <option value="1.2">20% — High growth</option>
+          <option value="1.25">25% — Rapid growth area</option>
+        </select>
+        <div class="param-note">Accounts for new connections over time</div>
+      </div>
+      <div class="param-card">
+        <label>Panel Wattage (Wp)</label>
+        <select id="panelWp">
+          <option value="300">300Wp panels</option>
+          <option value="400" selected>400Wp panels</option>
+          <option value="500">500Wp panels</option>
+          <option value="550">550Wp panels</option>
+        </select>
+      </div>
+      <div class="param-card">
+        <label>Battery Size (Ah)</label>
+        <select id="battAh">
+          <option value="100">100Ah batteries</option>
+          <option value="150">150Ah batteries</option>
+          <option value="200" selected>200Ah batteries</option>
+        </select>
+      </div>
+    </div>
+    <div class="psh-ref">
+      <strong>🗺 Nigerian PSH Reference (NASA POWER / NIMET):</strong><br>
+      Lagos 4.5 · Port Harcourt 4.0 · Enugu 4.6 · Owerri 4.2 · Abuja 5.5 · Jos 5.6 · Kaduna 5.5 · Kano 6.0 · Sokoto 6.3
+      <div class="psh-source">Source: NASA Prediction of Worldwide Energy Resources (POWER) database &amp; Nigerian Meteorological Agency (NIMET) long-term averages.</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: COMMUNITY LOAD TABLE -->
+  <div class="card">
+    <div class="card-title">🏘 Step 3 — Community Load Profile</div>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
+      Enter the <strong>number of connections</strong> for each user type in your community.
+      Leave count as <strong>0</strong> for categories not present. Adjust watts and hours to match local usage patterns.
+      Only rows with count &gt; 0 are included in sizing calculations.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="ht-table">
+        <thead>
+          <tr>
+            <th style="min-width:220px;">User / Load Type</th>
+            <th style="width:70px;">Count</th>
+            <th style="width:100px;">Watts Each</th>
+            <th style="width:90px;">Hrs/Day</th>
+            <th style="width:110px;">Daily Wh</th>
+            <th style="width:100px;">Peak W</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="addCustomRow()">＋ Add Custom Row</button>
+      <button class="btn btn-outline" onclick="clearAllCounts()" style="color:var(--warn);border-color:rgba(230,57,70,0.3);">↺ Clear All Counts</button>
+    </div>
+  </div>
+
+  <!-- LIVE TOTALS -->
+  <div class="totals-bar">
+    <div class="total-item">
+      <div class="total-val" id="totWh">0</div>
+      <div class="total-lbl">Total Daily Energy (Wh)</div>
+    </div>
+    <div class="total-item">
+      <div class="total-val" id="totPeak">0</div>
+      <div class="total-lbl">Peak Simultaneous Load (W)</div>
+    </div>
+    <div class="total-item">
+      <div class="total-val" id="totConn">0</div>
+      <div class="total-lbl">Active Connections</div>
+    </div>
+    <div class="total-item">
+      <div class="total-val" id="totGrowth">0</div>
+      <div class="total-lbl">With Growth Factor (Wh)</div>
+    </div>
+  </div>
+
+  <div class="err-msg" id="errMsg">⚠ Please enter at least one connection (count &gt; 0) before calculating.</div>
+  <button class="calc-btn" onclick="calculate()">⚡ Calculate Community System Size</button>
+
+  <!-- RESULTS -->
+  <div id="results">
+
+    <!-- PROJECT SUMMARY HEADER -->
+    <div class="proj-summary" id="projSummaryBox">
+      <h3>📋 Community Assessment Report</h3>
+      <div class="proj-grid" id="projSummaryGrid"></div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">☀</div>
+        <div class="kpi-label">Solar Panel Array</div>
+        <div class="kpi-val" id="rPanels">—</div>
+        <div class="kpi-sub" id="rPanelsSub">—</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-icon">🔋</div>
+        <div class="kpi-label">Battery Bank</div>
+        <div class="kpi-val" id="rBatts">—</div>
+        <div class="kpi-sub" id="rBattsSub">—</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-label">Inverter Capacity</div>
+        <div class="kpi-val" id="rInv">—</div>
+        <div class="kpi-sub" id="rInvSub">—</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">🔌</div>
+        <div class="kpi-label">Charge Controller</div>
+        <div class="kpi-val" id="rCC">—</div>
+        <div class="kpi-sub" id="rCCSub">—</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-icon">🏘</div>
+        <div class="kpi-label">Total Connections</div>
+        <div class="kpi-val" id="rConn">—</div>
+        <div class="kpi-sub">Households + SMEs + Public</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-label">With Growth Factor</div>
+        <div class="kpi-val" id="rGrowth">—</div>
+        <div class="kpi-sub" id="rGrowthSub">kWh/day (future load)</div>
+      </div>
+    </div>
+
+    <!-- LOAD BREAKDOWN BY CATEGORY -->
+    <div class="card-title" style="margin-bottom:10px;">📊 Load Breakdown by Category</div>
+    <div class="breakdown-grid" id="breakdownGrid"></div>
+
+    <!-- WIRING CONFIG -->
+    <div class="wiring-box">
+      <div class="wiring-title">🔧 Battery Bank Configuration</div>
+      <div class="wiring-grid">
+        <div class="wiring-item"><div class="wl">Total Ah Required</div><div class="wv" id="wAh">—</div></div>
+        <div class="wiring-item"><div class="wl">No. of Batteries</div><div class="wv" id="wCount">—</div></div>
+        <div class="wiring-item"><div class="wl">Series per String</div><div class="wv" id="wSeries">—</div></div>
+        <div class="wiring-item"><div class="wl">Parallel Strings</div><div class="wv" id="wParallel">—</div></div>
+        <div class="wiring-item"><div class="wl">System Voltage</div><div class="wv" id="wVolt">—</div></div>
+        <div class="wiring-item"><div class="wl">Wiring Config</div><div class="wv" id="wConfig">—</div></div>
+      </div>
+    </div>
+
+    <!-- DETAILED REPORT TABLE -->
+    <div class="card-title" style="margin-bottom:10px;">📋 Detailed Load Summary</div>
+    <div style="overflow-x:auto;">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Load Type</th>
+            <th style="text-align:center">Count</th>
+            <th style="text-align:right">Daily Wh</th>
+            <th style="text-align:right">Peak W</th>
+            <th style="text-align:right">% of Total</th>
+            <th style="text-align:left">Category</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+        <tfoot id="reportFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="printReport()">🖨 Print / Save PDF Report</button>
+      <button class="btn btn-outline" onclick="resetAll()">↩ Start Over</button>
+    </div>
+
+    <div class="disclaimer">
+      <strong>⚠ Disclaimer:</strong> This tool provides <em>preliminary engineering estimates</em> to support
+      rural electrification planning. Results are based on standard solar PV design principles and
+      Nigerian irradiance data (NASA POWER / NIMET). Outputs must be validated by a certified solar
+      engineer before procurement, procurement, or installation. Solpotentia Energy Ltd recommends
+      full professional site assessment for all community mini-grid systems.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-bar">
+  Solpotentia Energy Ltd &nbsp;|&nbsp; Alor/Awka, Anambra State, Nigeria &nbsp;|&nbsp;
+  solpotentia@gmail.com &nbsp;|&nbsp; Community Mini-Grid Sizing Tool v1.1 Beta
+</div>
+
+<script>
+// ── DEFAULTS: counts all zero — watts/hours pre-filled as guidance only
+const DEFAULTS = [
+  { cat:'Residential', label:'Basic Household (Lights + Fan + Phone charging)', watts:120, hrs:6 },
+  { cat:'Residential', label:'Standard Household (TV + Fan + Lights + Laptop)', watts:260, hrs:7 },
+  { cat:'Residential', label:'Medium Household (Fridge + TV + Lights + Fan)', watts:480, hrs:8 },
+  { cat:'Residential', label:'Large Household (AC + Fridge + TV + Lights)', watts:1100, hrs:6 },
+  { cat:'Commercial', label:'Small Retail Shop (Lighting + Phone charging)', watts:80,  hrs:10 },
+  { cat:'Commercial', label:'Barbing Salon / Beauty Shop', watts:600, hrs:8 },
+  { cat:'Commercial', label:'Restaurant / Canteen (Fridge + Lighting)', watts:500, hrs:12 },
+  { cat:'Commercial', label:'Supermarket / Provision Store (Fridge + CCTV)', watts:400, hrs:12 },
+  { cat:'Productive Use', label:'Water Pumping Station', watts:750, hrs:4 },
+  { cat:'Productive Use', label:'Grinding / Milling Machine', watts:1500, hrs:4 },
+  { cat:'Productive Use', label:'Poultry / Cold Storage (Refrigeration)', watts:800, hrs:12 },
+  { cat:'Public Service', label:'Health Centre / Clinic (Lights + Fridge + Equipment)', watts:650, hrs:12 },
+  { cat:'Public Service', label:'School / Community Hall (Lights + Projector + Fans)', watts:400, hrs:8 },
+  { cat:'Public Service', label:'Borehole / Water Pumping (Community)', watts:1100, hrs:3 },
+  { cat:'Public Service', label:'Street Lighting (per cluster)', watts:200, hrs:10 },
+];
+
+const CAT_COLORS = {
+  'Residential':   '#1A5EA8',
+  'Commercial':    '#1A6B3C',
+  'Productive Use':'#F5A623',
+  'Public Service':'#5C3D99',
+};
+
+const SYS_EFF   = 0.80;
+const SAFETY    = 1.15;
+const INV_SIZES = [1,1.5,2,3,5,7.5,10,15,20,30,50];
+const CC_SIZES  = [20,30,40,50,60,80,100,120,150,200];
+
+function nextSize(val, arr){ return arr.find(s => s >= val) || arr[arr.length-1]; }
+function fmt(n){ return Number(n).toLocaleString('en-NG', {maximumFractionDigits:0}); }
+function fmtD(n,d=1){ return Number(n).toFixed(d); }
+
+let customCount = 0;
+
+function buildTable(){
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  let lastCat = '';
+  DEFAULTS.forEach((row, i) => {
+    if(row.cat !== lastCat){
+      const hdr = document.createElement('tr');
+      hdr.className = 'cat-hdr';
+      const col = CAT_COLORS[row.cat] || '#1A5EA8';
+      hdr.innerHTML = `<td colspan="6" style="border-left:4px solid ${col}">
+        📂 ${row.cat}</td>`;
+      tbody.appendChild(hdr);
+      lastCat = row.cat;
+    }
+    const tr = document.createElement('tr');
+    tr.id = 'row-def-'+i;
+    tr.setAttribute('data-cat', row.cat);
+    tr.innerHTML = `
+      <td style="font-weight:500;color:var(--text);">${row.label}</td>
+      <td><input type="number" id="cnt-def-${i}" value="0" min="0"
+          oninput="updateTotals()" style="width:60px;text-align:center;"></td>
+      <td><input type="number" id="wt-def-${i}" value="${row.watts}" min="1"
+          oninput="updateTotals()"></td>
+      <td><input type="number" id="hr-def-${i}" value="${row.hrs}" min="0.5" max="24" step="0.5"
+          oninput="updateTotals()"></td>
+      <td class="wh-cell" id="wh-def-${i}"><span class="inactive">—</span></td>
+      <td class="pw-cell" id="pw-def-${i}"><span class="inactive">—</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateTotals();
+}
+
+function addCustomRow(){
+  customCount++;
+  const id = 'cust-'+customCount;
+  const tbody = document.getElementById('tableBody');
+  const tr = document.createElement('tr');
+  tr.id = 'row-'+id;
+  tr.setAttribute('data-cat','Custom');
+  tr.innerHTML = `
+    <td><input type="text" id="name-${id}" placeholder="Describe load type"
+        style="width:100%;padding:6px 8px;border:1.5px solid var(--border);
+        border-radius:6px;font-size:0.82rem;font-family:'DM Sans',sans-serif;"></td>
+    <td><input type="number" id="cnt-${id}" value="0" min="0"
+        oninput="updateTotals()" style="width:60px;text-align:center;"></td>
+    <td><input type="number" id="wt-${id}" value="100" min="1"
+        oninput="updateTotals()"></td>
+    <td><input type="number" id="hr-${id}" value="6" min="0.5" max="24" step="0.5"
+        oninput="updateTotals()"></td>
+    <td class="wh-cell" id="wh-${id}"><span class="inactive">—</span></td>
+    <td class="pw-cell" id="pw-${id}"><span class="inactive">—</span></td>
+  `;
+  // add delete button in last col
+  tr.querySelector('td:last-child').innerHTML +=
+    `<button onclick="this.closest('tr').remove();updateTotals();"
+      style="background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);
+      color:var(--warn);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:12px;margin-left:4px;">✕</button>`;
+  tbody.appendChild(tr);
+  updateTotals();
+}
+
+function clearAllCounts(){
+  document.querySelectorAll('[id^="cnt-"]').forEach(el => { el.value = 0; });
+  updateTotals();
+}
+
+function getAllRowData(){
+  const rows = [];
+  // default rows
+  DEFAULTS.forEach((d,i) => {
+    const cnt = parseFloat(document.getElementById('cnt-def-'+i)?.value)||0;
+    const wt  = parseFloat(document.getElementById('wt-def-'+i)?.value)||d.watts;
+    const hr  = parseFloat(document.getElementById('hr-def-'+i)?.value)||d.hrs;
+    rows.push({ id:'def-'+i, name:d.label, cat:d.cat, cnt, wt, hr });
+  });
+  // custom rows
+  for(let i=1; i<=customCount; i++){
+    const id = 'cust-'+i;
+    const el = document.getElementById('cnt-'+id);
+    if(!el) continue;
+    const nameEl = document.getElementById('name-'+id);
+    const cnt = parseFloat(el.value)||0;
+    const wt  = parseFloat(document.getElementById('wt-'+id)?.value)||100;
+    const hr  = parseFloat(document.getElementById('hr-'+id)?.value)||6;
+    const name = nameEl?.value || 'Custom Load';
+    rows.push({ id, name, cat:'Custom', cnt, wt, hr });
+  }
+  return rows;
+}
+
+function updateTotals(){
+  const rows = getAllRowData();
+  const growth = parseFloat(document.getElementById('growthFactor')?.value)||1.1;
+  let totalWh=0, totalPeak=0, totalConn=0;
+
+  rows.forEach(r => {
+    const wh = r.cnt * r.wt * r.hr;
+    const pw = r.cnt * r.wt;
+    totalWh   += wh;
+    totalPeak += pw;
+    totalConn += r.cnt;
+    const whEl = document.getElementById('wh-'+r.id);
+    const pwEl = document.getElementById('pw-'+r.id);
+    if(whEl) whEl.innerHTML = r.cnt>0
+      ? `<strong>${fmt(Math.round(wh))} Wh</strong>`
+      : '<span class="inactive">—</span>';
+    if(pwEl) pwEl.innerHTML = r.cnt>0
+      ? `<strong>${fmt(Math.round(pw))} W</strong>`
+      : '<span class="inactive">—</span>';
+  });
+
+  document.getElementById('totWh').textContent    = fmt(Math.round(totalWh));
+  document.getElementById('totPeak').textContent   = fmt(Math.round(totalPeak));
+  document.getElementById('totConn').textContent   = fmt(Math.round(totalConn));
+  document.getElementById('totGrowth').textContent = fmt(Math.round(totalWh * growth));
+}
+
+function calculate(){
+  const errEl = document.getElementById('errMsg');
+  errEl.style.display = 'none';
+
+  const rows        = getAllRowData().filter(r => r.cnt > 0 && r.wt > 0 && r.hr > 0);
+  if(rows.length === 0){ errEl.style.display='block'; return; }
+
+  const psh         = parseFloat(document.getElementById('psh').value);
+  const dod         = parseFloat(document.getElementById('battType').value);
+  const sysVolt     = parseFloat(document.getElementById('sysVolt').value);
+  const autonomy    = parseFloat(document.getElementById('autonomy').value);
+  const panelWp     = parseFloat(document.getElementById('panelWp').value);
+  const battAh      = parseFloat(document.getElementById('battAh').value);
+  const growthFactor= parseFloat(document.getElementById('growthFactor').value);
+
+  let totalWh=0, totalPeak=0, totalConn=0;
+  const catTotals = {};
+
+  rows.forEach(r => {
+    const wh = r.cnt * r.wt * r.hr;
+    const pw = r.cnt * r.wt;
+    totalWh   += wh;
+    totalPeak += pw;
+    totalConn += r.cnt;
+    if(!catTotals[r.cat]) catTotals[r.cat] = {wh:0, pw:0, conn:0};
+    catTotals[r.cat].wh   += wh;
+    catTotals[r.cat].pw   += pw;
+    catTotals[r.cat].conn += r.cnt;
+  });
+
+  const totalWhGrowth = totalWh * growthFactor;
+  const adjWh         = (totalWhGrowth / SYS_EFF) * SAFETY;
+  const solarArrayW   = adjWh / psh;
+  const numPanels     = Math.ceil(solarArrayW / panelWp);
+  const actualArrayW  = numPanels * panelWp;
+
+  const bankAhRaw     = (totalWhGrowth * autonomy) / (dod * sysVolt);
+  const seriesPerStr  = Math.round(sysVolt / 12);
+  const parallelStr   = Math.ceil(Math.ceil(bankAhRaw / battAh) / seriesPerStr);
+  const totalBatts    = seriesPerStr * parallelStr;
+  const actualBankAh  = totalBatts * battAh;
+
+  const invKW         = nextSize((totalPeak * growthFactor * 1.25) / 1000, INV_SIZES);
+  const ccAmps        = nextSize((actualArrayW / (sysVolt * 1.25)) * 1.25, CC_SIZES);
+
+  // ── PROJECT SUMMARY HEADER
+  const pn = document.getElementById('projName').value    || '—';
+  const cn = document.getElementById('commName').value    || '—';
+  const lg = document.getElementById('lga').value         || '—';
+  const st = document.getElementById('state').value       || '—';
+  const as = document.getElementById('assessor').value    || '—';
+  const dv = document.getElementById('developer').value   || '—';
+  const dt = document.getElementById('assessDate').value  || new Date().toLocaleDateString('en-NG');
+  const rf = document.getElementById('reportRef').value   || '—';
+
+  document.getElementById('projSummaryGrid').innerHTML = [
+    {l:'Project Name', v:pn}, {l:'Community', v:cn},
+    {l:'LGA', v:lg},          {l:'State', v:st},
+    {l:'Assessor', v:as},     {l:'Developer', v:dv},
+    {l:'Date', v:dt},         {l:'Reference', v:rf},
+  ].map(x=>`<div class="proj-item"><div class="pl">${x.l}</div><div class="pv">${x.v}</div></div>`).join('');
+
+  // ── KPIs
+  document.getElementById('rPanels').textContent    = numPanels;
+  document.getElementById('rPanelsSub').textContent = `× ${panelWp}Wp = ${fmt(actualArrayW)}Wp total`;
+  document.getElementById('rBatts').textContent     = totalBatts;
+  document.getElementById('rBattsSub').textContent  = `× ${battAh}Ah | ${actualBankAh}Ah bank`;
+  document.getElementById('rInv').textContent       = invKW + ' kW';
+  document.getElementById('rInvSub').textContent    = `Peak load: ${fmt(Math.round(totalPeak))}W + 25% surge`;
+  document.getElementById('rCC').textContent        = ccAmps + 'A';
+  document.getElementById('rCCSub').textContent     = `MPPT for ${fmt(actualArrayW)}Wp array`;
+  document.getElementById('rConn').textContent      = fmt(Math.round(totalConn));
+  document.getElementById('rGrowth').textContent    = fmtD(totalWhGrowth/1000);
+  document.getElementById('rGrowthSub').textContent = `kWh/day (×${growthFactor} growth factor)`;
+
+  // ── BATTERY WIRING
+  document.getElementById('wAh').textContent      = fmt(Math.round(bankAhRaw)) + ' Ah';
+  document.getElementById('wCount').textContent   = totalBatts + ' units';
+  document.getElementById('wSeries').textContent  = seriesPerStr + ' batteries (for '+sysVolt+'V)';
+  document.getElementById('wParallel').textContent = parallelStr + ' strings';
+  document.getElementById('wVolt').textContent    = sysVolt + 'V DC';
+  document.getElementById('wConfig').textContent  = seriesPerStr+'S × '+parallelStr+'P';
+
+  // ── CATEGORY BREAKDOWN CARDS
+  const bg = document.getElementById('breakdownGrid');
+  bg.innerHTML = '';
+  Object.entries(catTotals).forEach(([cat, d]) => {
+    const pct = totalWh>0 ? ((d.wh/totalWh)*100).toFixed(1) : '0';
+    const col = CAT_COLORS[cat] || '#1A5EA8';
+    bg.innerHTML += `
+      <div class="breakdown-card" style="border-top:3px solid ${col}">
+        <div class="bc-title">${cat}</div>
+        <div class="bc-wh">${fmt(Math.round(d.wh))} Wh/day</div>
+        <div class="bc-pct">${pct}% of total load</div>
+        <div class="bc-conn">${fmt(d.conn)} connections · ${fmt(Math.round(d.pw))}W peak</div>
+      </div>`;
+  });
+
+  // ── DETAILED TABLE
+  const tbody = document.getElementById('reportBody');
+  const tfoot = document.getElementById('reportFoot');
+  tbody.innerHTML = '';
+  let lastCat = '';
+  rows.forEach(r => {
+    if(r.cat !== lastCat){
+      const catRow = document.createElement('tr');
+      catRow.className = 'cat-row';
+      catRow.innerHTML = `<td colspan="6">📂 ${r.cat}</td>`;
+      tbody.appendChild(catRow);
+      lastCat = r.cat;
+    }
+    const wh  = r.cnt * r.wt * r.hr;
+    const pw  = r.cnt * r.wt;
+    const pct = totalWh>0 ? ((wh/totalWh)*100).toFixed(1) : '0';
+    const tr  = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.name}</td>
+      <td style="text-align:center">${fmt(r.cnt)}</td>
+      <td class="val">${fmt(Math.round(wh))} Wh</td>
+      <td class="val">${fmt(Math.round(pw))} W</td>
+      <td style="text-align:right;color:var(--muted)">${pct}%</td>
+      <td style="font-size:0.75rem;color:var(--muted)">${r.cat}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tfoot.innerHTML = `
+    <tr>
+      <td>COMMUNITY TOTAL (${Object.keys(catTotals).length} categories)</td>
+      <td style="text-align:center">${fmt(Math.round(totalConn))} connections</td>
+      <td>${fmt(Math.round(totalWh))} Wh/day</td>
+      <td>${fmt(Math.round(totalPeak))} W peak</td>
+      <td>100%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td colspan="2">With Growth Factor (×${growthFactor})</td>
+      <td>${fmt(Math.round(totalWhGrowth))} Wh/day</td>
+      <td colspan="3"></td>
+    </tr>
+  `;
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function printReport(){
+  // Ensure results visible before print
+  document.getElementById('results').style.display = 'block';
+  setTimeout(() => { window.print(); }, 200);
+}
+
+function resetAll(){
+  document.getElementById('results').style.display = 'none';
+  buildTable();
+  document.getElementById('projName').value  = '';
+  document.getElementById('commName').value  = '';
+  document.getElementById('lga').value       = '';
+  document.getElementById('state').value     = '';
+  document.getElementById('assessor').value  = '';
+  document.getElementById('developer').value = '';
+  document.getElementById('reportRef').value = '';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── INIT
+document.addEventListener('DOMContentLoaded', function(){
+  buildTable();
+  // set today's date
+  const d = new Date();
+  document.getElementById('assessDate').value =
+    d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+});
+
+// Update growth display when param changes
+document.addEventListener('change', function(e){
+  if(e.target.id === 'growthFactor') updateTotals();
+});
+</script>
+</body>
+</html>
